@@ -8,6 +8,7 @@ import pandas as pd
 import datetime
 from datetime import datetime as dt
 import pathlib
+from typing import List, Dict, Any, Optional
 
 app = dash.Dash(
     __name__,
@@ -55,7 +56,7 @@ day_list = [
     "Sunday",
 ]
 
-check_in_duration = df["Check-In Time"].describe(datetime_is_numeric=True)
+check_in_duration = df["Check-In Time"].describe()
 
 # Register all departments for callbacks
 all_departments = df["Department"].unique().tolist()
@@ -105,7 +106,7 @@ def generate_control_card():
                 end_date=dt(2014, 1, 15),
                 min_date_allowed=dt(2014, 1, 1),
                 max_date_allowed=dt(2014, 12, 31),
-                initial_visible_month=dt(2014, 1, 1),
+                initial_visible_month="2014-01-01",
             ),
             html.Br(),
             html.Br(),
@@ -199,7 +200,7 @@ def generate_patient_volume_heatmap(start, end, clinic, hm_click, admit_type, re
             # Highlight annotation text by self-click
             if x_val == hour_of_day and day == weekday:
                 if not reset:
-                    annotation_dict.update(size=15, font=dict(color="#ff6347"))
+                    annotation_dict.update(size="15px", font=dict(color="#ff6347"))
 
             annotations.append(annotation_dict)
 
@@ -241,16 +242,8 @@ def generate_patient_volume_heatmap(start, end, clinic, hm_click, admit_type, re
     return {"data": data, "layout": layout}
 
 
-def generate_table_row(id, style, col1, col2, col3):
-    """ Generate table rows.
-
-    :param id: The ID of table row.
-    :param style: Css style of this row.
-    :param col1 (dict): Defining id and children for the first column.
-    :param col2 (dict): Defining id and children for the second column.
-    :param col3 (dict): Defining id and children for the third column.
-    """
-
+def generate_table_row(id: str, style: Dict[str, str], col1: Dict[str, Any], col2: Dict[str, Any], col3: Dict[str, Any]) -> html.Div:
+    """Generate table rows."""
     return html.Div(
         id=id,
         className="row table-row",
@@ -379,14 +372,8 @@ def initialize_table():
     return empty_table
 
 
-def generate_patient_table(figure_list, departments, wait_time_xrange, score_xrange):
-    """
-    :param score_xrange: score plot xrange [min, max].
-    :param wait_time_xrange: wait time plot xrange [min, max].
-    :param figure_list:  A list of figures from current selected metrix.
-    :param departments:  List of departments for making table.
-    :return: Patient table.
-    """
+def generate_patient_table(figure_list: List[Dict[str, Any]], departments: List[str], wait_time_xrange: List[float], score_xrange: List[float]) -> List[html.Div]:
+    """Generate patient table."""
     # header_row
     header = [
         generate_table_row(
@@ -748,4 +735,4 @@ def update_table(start, end, clinic, admit_type, heatmap_click, reset_click, *ar
 
 # Run the server
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run(debug=False, port=80, host='0.0.0.0')
